@@ -4,7 +4,16 @@
   <url>
     <loc>http://example.com/2022/11/28/hello-world/</loc>
     
-    <lastmod>2022-12-05</lastmod>
+    <lastmod>2023-03-02</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>http://example.com/2023/03/01/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E3%80%81%E7%BA%BF%E7%A8%8B%E6%B1%A0%E3%80%81%E5%8E%9F%E5%AD%90%E6%80%A7%E5%8F%8A%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/</loc>
+    
+    <lastmod>2023-03-02</lastmod>
     
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -85,7 +94,7 @@
 
   <url>
     <loc>http://example.com/</loc>
-    <lastmod>2022-12-05</lastmod>
+    <lastmod>2023-03-02</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
