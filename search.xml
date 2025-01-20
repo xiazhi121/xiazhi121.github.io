@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  <entry>
+    <title>Hello World</title>
+    <url>/2022/11/28/hello-world/</url>
+    <content><![CDATA[<p>Welcome to <a href="https://hexo.io/">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues">GitHub</a>.<br>欢迎来到Hexo！这是你的第一篇文章。有关详细信息，请查看文档。如果您在使用Hexo时遇到任何问题，您可以在疑难解答中找到答案，也可以在GitHub上询问我。</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><h3 id="创建新帖子"><a href="#创建新帖子" class="headerlink" title="创建新帖子"></a>创建新帖子</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ hexo new <span class="token string">"My New Post"</span></code></pre>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><h3 id="运行服务器"><a href="#运行服务器" class="headerlink" title="运行服务器"></a>运行服务器</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ hexo server</code></pre>
+
+<p>More info: <a href="https://hexo.io/docs/server.html">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ hexo generate</code></pre>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><h3 id="部署到远程站点"><a href="#部署到远程站点" class="headerlink" title="部署到远程站点"></a>部署到远程站点</h3><pre class="language-bash" data-language="bash"><code class="language-bash">$ hexo deploy</code></pre>
+
+<p>More info: <a href="https://hexo.io/docs/one-command-deployment.html">Deployment</a></p>
+]]></content>
+      <categories>
+        <category>Hello World</category>
+      </categories>
+      <tags>
+        <tag>Hello World</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>阻塞队列、线程池、原子性及并发工具类</title>
+    <url>/2023/03/01/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E3%80%81%E7%BA%BF%E7%A8%8B%E6%B1%A0%E3%80%81%E5%8E%9F%E5%AD%90%E6%80%A7%E5%8F%8A%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB/</url>
+    <content><![CDATA[<h1 id="一、阻塞队列"><a href="#一、阻塞队列" class="headerlink" title="一、阻塞队列"></a>一、阻塞队列</h1><p><strong>ArrayBlockingQueue</strong>类：底层是数组，有界，没有无参构造方法</p>
+<p><strong>LinkedBlockingQueue</strong>类：底层是链表，无界但最多能存放int的最大值，无参构造方法默认容量就是最大值</p>
+<p>常用方法：</p>
+<blockquote>
+<p><strong>put(Object o)：</strong> 将参数放入队列，如果放不进去会阻塞</p>
+<p><strong>take()：</strong> 取出第一个数据，取不到会阻塞</p>
+</blockquote>
+<p>使用阻塞队列实现生产者消费者模式：</p>
+<pre class="language-none"><code class="language-none">public class Test &#123;
+    public static void main(String[] args) throws
+            InterruptedException &#123;
+        ArrayBlockingQueue&lt;String&gt; arrayBlockingQueue &#x3D; new
+                ArrayBlockingQueue&lt;&gt;(1);
+        Foodie foodie &#x3D; new Foodie(arrayBlockingQueue);
+        Cooker cooker &#x3D; new Cooker(arrayBlockingQueue);
+        foodie.start();
+        cooker.start();
+    &#125;
+&#125;
+class Foodie extends Thread&#123;
+    private ArrayBlockingQueue&lt;String&gt; arrayBlockingQueue;
+    public Foodie(ArrayBlockingQueue&lt;String&gt; arrayBlockingQueue)&#123;
+        this.arrayBlockingQueue &#x3D; arrayBlockingQueue;
+    &#125;
+    @Override
+    public void run() &#123;
+        while (true) &#123;
+            try &#123;
+                String take &#x3D; arrayBlockingQueue.take();
+                System.out.println(&quot;生产者消费了一个&quot;+take);&#125; catch (InterruptedException e) &#123;
+                e.printStackTrace();
+            &#125;
+        &#125;
+    &#125;
+&#125;
+class Cooker extends Thread&#123;
+    private ArrayBlockingQueue&lt;String&gt; arrayBlockingQueue;
+    public Cooker(ArrayBlockingQueue&lt;String&gt; arrayBlockingQueue)&#123;
+        this.arrayBlockingQueue &#x3D; arrayBlockingQueue;
+    &#125;
+    @Override
+    public void run() &#123;
+        while (true) &#123;
+            try &#123;
+                arrayBlockingQueue.put(&quot;汉堡包&quot;);
+                System.out.println(&quot;生产者放了一个汉堡包&quot;);&#125; catch (InterruptedException e) &#123;
+                e.printStackTrace();
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre>
+
+
+<h1 id="二、线程池"><a href="#二、线程池" class="headerlink" title="二、线程池"></a>二、线程池</h1><p>每一个线程的启动和结束都是比较消耗时间和资源的，如果在系统中用到很多线程，大量的线程启动和结束操作会导致性能变卡，响应变慢，为了解决这个问题，引入了<strong>线程池的设计思想</strong>，线程池就是<strong>一种生产者消费者模式</strong></p>
+<p>主要思想是创建若干个线程放入池子，有任务需要处理时将任务提交到线程池中的任务队列，任务处理完后线程池并不会销毁，而是继续在线程池中等待下一个任务</p>
+<h2 id="静态方法创建线程池："><a href="#静态方法创建线程池：" class="headerlink" title="静态方法创建线程池："></a>静态方法创建线程池：</h2><p>1、使用<strong>Executors</strong>类中的静态方法<strong>static ExecutorService newCachedThreadPool()</strong> 创建线程池，默认线程池是空的，根据需要创建线程，超过60秒未被使用的线程则<strong>销毁</strong>，最多创建int最大值个线程</p>
+<p>2、使用<strong>Executors</strong>类中的静态方法<strong>static ExecutorService newFixedThreadPool(int nThreads)</strong> 创建线程池，默认线程池是空的，根据需要创建线程，参数表示线程池最多能够创建的线程，创建的线程将<strong>一直存到直到显式调用shutdown()方法</strong></p>
+<p>3、这两个方法返回值类型是<strong>ExecutorService</strong>接口，这个接口里边定义了操作线程的方法，常用的两个方法是：</p>
+<p><strong>submit(task)：</strong> task是需要执行的任务，可以是实现Runnable接口或Callable接口的类对象，也可以是Lambda表达式</p>
+<p><strong>shutdown()：</strong> 用于任务执行后关闭线程池</p>
+<h2 id="使用ThreadPoolexecutor类创建线程池："><a href="#使用ThreadPoolexecutor类创建线程池：" class="headerlink" title="使用ThreadPoolexecutor类创建线程池："></a>使用ThreadPoolexecutor类创建线程池：</h2><p>1、上述使用静态方法创建的线程池实际上是使用类该类来创建并返回线程池</p>
+<p>2、常用构造方法：</p>
+<pre class="language-none"><code class="language-none">public ThreadPoolExecutor(
+        int corePoolSize,
+        int maximumPoolSize,
+        long keepAliveTime,
+        TimeUnit unit,
+        BlockingQueue&lt;Runnable&gt; workQueue,
+        ThreadFactory threadFactory,
+        RejectedExecutionHandler handler
+)&#123;&#125;</code></pre>
+
+
+<blockquote>
+<p>corePoolSize ：核心线程数量</p>
+<p>maximumPoolSize ：最大线程数量</p>
+<p>keepAliveTime ：空闲线程存活时间的值</p>
+<p>unit ：存活时间的单位</p>
+<p>workQueue ：任务队列</p>
+<p>threadFactory ：线程工厂，指定创建线程的方式</p>
+<p>handler ：任务拒绝策略，当任务队列已满，新任务不能提交到线程池时触发对新任务</p>
+<p>的处理策略</p>
+</blockquote>
+<p>3、任务拒绝策略</p>
+<blockquote>
+<p><strong>ThreadPoolExecutor.AbortPolicy</strong>：丢弃任务并抛出RejectExecutionException异</p>
+<p>常，默认的任务拒绝策略</p>
+<p><strong>ThreadPoolExecutor.DiscardPolicy</strong>：丢弃任务但不抛出异常，不推荐使用</p>
+<p><strong>ThreadPoolExecutor.DiscardOldestPolicy</strong>：抛弃队列中等待最久的任务然后将当</p>
+<p>前任务加入任务队列</p>
+<p><strong>ThreadPoolExecutor.CallerRunsPolicy</strong>：调用任务的run()方法绕过线程池直接执行</p>
+</blockquote>
+<h1 id="三、原子性"><a href="#三、原子性" class="headerlink" title="三、原子性"></a>三、原子性</h1><p>原子性是指一个操作是不可中断的，要么全部执行成功要么全部执行失败。即使是多个线程一起执行，一个操作一旦开始，就不会被其他线程所干扰。</p>
+<p>volatile不能保证原子性，synchronized可以保证原子性。</p>
+<p>原子性操作类，既能保证原子性又比synchronized高效，如<strong>Atomiclnteger</strong>类</p>
+<p>1、构造方法</p>
+<p><strong>public AtomicInteger()</strong> ：创建初始值为0的对象</p>
+<p><strong>public AtomicInteger(int value)</strong> ：创建指定值的对对象</p>
+<p>2、常用方法</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方法名</td>
+<td>说明</td>
+</tr>
+<tr>
+<td>int get()</td>
+<td>获取值</td>
+</tr>
+<tr>
+<td>int getAndIncrement()</td>
+<td>以原子方式将当前值加1，返回加1前的旧值</td>
+</tr>
+<tr>
+<td>int incrementAndGet()</td>
+<td>以原子方式将当前值加1，返回加1后的新值</td>
+</tr>
+<tr>
+<td>int addAndGet(int value)</td>
+<td>以原子方式将当前值与参数相加，并返回结果</td>
+</tr>
+<tr>
+<td>int getAndSet(int value)</td>
+<td>以原子方式将当前值设置为参数的值，返回旧值</td>
+</tr>
+</tbody></table>
+<p>3、原理(底层使用<strong>自旋+CAS算法</strong>)</p>
+<p><strong>自旋：</strong> 就是重新获取共享变量的操作</p>
+<p><strong>CAS算法：</strong></p>
+<blockquote>
+<p>● 线程在修改共享数据时查看共享数据的值与变量副本的值是否相同</p>
+<p>● 如果相同说明共享变量的值没有被其他线程修改，可以直接将新值赋给共享数据</p>
+<p>● 如果不相同，说明在对变量副本进行操作时有其他线程修改了共享数据，此时不能</p>
+<p>修改共享数据，而是重新获取共享数据的值</p>
+</blockquote>
+<p>4、sychronized与CAS的<strong>区别</strong></p>
+<p>相同点：在多线程的情况下，都可以保证共享数据的安全性</p>
+<p>不同的：</p>
+<p>1、sychronized总是从最坏的角度出发，认为每次获取数据时，别的线程都有可能修改，所以每次操作共享数据前，都会上锁（<strong>悲观锁</strong>）</p>
+<p>2、CAS是从乐观的角度出发，假设每次获取数据时别的线程都不会修改，所以不上锁，只是在修改共享数据时再查看其他线程有没有修改共享数据，如果有就重新获取新的共享数据，如果没有就直接修改共享数据（<strong>乐观锁</strong>）</p>
+<h1 id="四、并发工具类"><a href="#四、并发工具类" class="headerlink" title="四、并发工具类"></a>四、并发工具类</h1><h2 id="HashTable类"><a href="#HashTable类" class="headerlink" title="HashTable类"></a>HashTable类</h2><blockquote>
+<p>● HashMap是线程不安全的，为了保证数据安全性可以使用线程安全的HashTable代替</p>
+<p>● HashTable效率比较低下</p>
+<p>● HashTable采用sychronized悲观锁，当有线程访问时会将整个集合加锁</p>
+</blockquote>
+<h2 id="ConcurrentHashMap类"><a href="#ConcurrentHashMap类" class="headerlink" title="ConcurrentHashMap类"></a>ConcurrentHashMap类</h2><blockquote>
+<p>● ConcurrentHashMap是线程安全的，效率较高</p>
+<p>● 在JDK7和JDK8中实现的原理有区别</p>
+<p>● JDK7原理</p>
+<p>        ■ 使用无参构造创建对象时，创建一个默认长度16，加载因子为0.75的数组，数组名为</p>
+<p>segment，并且这个数组无法扩容</p>
+<p>        ■ 再创建长度为2的小数组，将该小数组地址存入segment数组的0索引，segment其他索引均为null，这个小数组作为模板数组</p>
+<p>        ■ 在添加元素时会根据元素的哈希值计算出在segment的应存入位置的索引。如果为null</p>
+<p>则按照模板数组创建小数组，创建完毕后会进行二次哈希，计算出在小数组中应存入位置的索引，然后直接存入；如果不是null则直接找到小数组进行二次哈希，计算出在小数组中应存入位置的索引，如果小数组需要扩容则扩容到两倍，然后存入，如果小数组不需要扩容就查看该位置有无元素，如果没有元素直接存，如果有元素就调用equals()方法比较，相同的话不存，不相同就形成哈希桶结构</p>
+<p>        ■ 根据添加的原理，该集合实际上是创建了16个哈希表结构</p>
+<p>        ■ 保证线程安全的方式是，当线程对segment某个索引处的哈希表进行操作时对该索引处加锁，而其他索引则不加锁</p>
+<p>● JDK8原理</p>
+<p>        ■ 使用无参构造创建对象时并不会创建底层数组，而是在第一次添加数据时初始化长度为16，加载因子为0.75的数组</p>
+<p>        ■ 添加元素时计算应存入的索引，如果索引为null，则利用CAS算法将元素添加到此处；如果不为null，则利用volatile关键字获取当前位置最新的节点地址，将当前元素挂在它下面变成链表，当链表长度大于8时转为红黑树</p>
+<p>        ■ 保证数据安全的方式是对链表或者红黑树头节点加锁，配合悲观锁保证多线程操作集合时的安全性</p>
+</blockquote>
+<h2 id="CountDownLatch类"><a href="#CountDownLatch类" class="headerlink" title="CountDownLatch类"></a>CountDownLatch类</h2><h2 id="Semaphore类"><a href="#Semaphore类" class="headerlink" title="Semaphore类"></a>Semaphore类</h2><p>​</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>阻塞队列</category>
+      </categories>
+      <tags>
+        <tag>阻塞队列</tag>
+        <tag>线程池</tag>
+        <tag>并发工具类</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>进制转换、原码、反码、补码及位运算详解</title>
+    <url>/2022/12/12/%E8%BF%9B%E5%88%B6%E8%BD%AC%E6%8D%A2%E3%80%81%E5%8E%9F%E7%A0%81%E3%80%81%E5%8F%8D%E7%A0%81%E3%80%81%E8%A1%A5%E7%A0%81%E5%8F%8A%E4%BD%8D%E8%BF%90%E7%AE%97%E8%AF%A6%E8%A7%A3/</url>
+    <content><![CDATA[<h1 id="一、进制介绍"><a href="#一、进制介绍" class="headerlink" title="一、进制介绍"></a>一、进制介绍</h1><p>二进制是逢2进位的进位制,0、1是基本算符。</p>
+<p>现代的电子计算机技术全部采用的是二进制，因为它只使用0、1两个数字符号，非常简单方便，易于用电子方式实现。计算机内部处理的信息，都是采用二进制数来表示的。二进制（Binary）数用0和1两个数字及其组合来表示任何数。进位规则是“逢2进1”，数字1在不同的位上代表不同的值，按从右至左的次序，这个值以二倍递增。</p>
+<p>对于整数，有四种表示方式：</p>
+<p>1、二进制：0,1.满2进1，以0b或0B开头。</p>
+<p>2、十进制：0-9，满10进1。</p>
+<p>3、八进制：0-7，满8进1，以数字0开头表示</p>
+<p>4、十六进制：0-9及A(10)-F(15)，满16进1，以0x或0X开头表示。此处的A-F不区分大小写。</p>
+<h1 id="二、二进制、八进制、十六进制转换为十进制"><a href="#二、二进制、八进制、十六进制转换为十进制" class="headerlink" title="二、二进制、八进制、十六进制转换为十进制"></a>二、二进制、八进制、十六进制转换为十进制</h1><h2 id="（1）二级制转换为十进制示例"><a href="#（1）二级制转换为十进制示例" class="headerlink" title="（1）二级制转换为十进制示例"></a>（1）二级制转换为十进制示例</h2><blockquote>
+<p>规则：从<strong>最低位（右边）</strong> 开始，将每个位上的数据提取出来，<strong>乘以2的（位数-1）次方，然后求和</strong>。</p>
+</blockquote>
+<p>案例：将0b<strong>1011</strong>转为十进制的数</p>
+<blockquote>
+<p><strong>0b1011 &#x3D; 1 * 2的(1-1)次方 + 1 * 2的(2-1)次方 + 0 * 2的(3-1)次方 + 1 * 2的(4-1)次方&#x3D;</strong></p>
+<p><strong>1 + 2 + 0 + 8 &#x3D; 11</strong></p>
+</blockquote>
+<h2 id="（2）八级制转换为十进制示例"><a href="#（2）八级制转换为十进制示例" class="headerlink" title="（2）八级制转换为十进制示例"></a>（2）八级制转换为十进制示例</h2><blockquote>
+<p>规则：从<strong>最低位（右边）</strong> 开始，将每个位上的数提取出来，<strong>乘以8的（位数-1</strong>），然后<strong>求和</strong>。</p>
+</blockquote>
+<p>案例：将0<strong>234</strong>转为十进制的数</p>
+<blockquote>
+<p><strong>0234 &#x3D; 4 * 8 ^ 0 + 3 * 8 ^ 1 + 2 * 8 ^ 2 &#x3D; 4 + 24 + 128 &#x3D; 156</strong></p>
+</blockquote>
+<h2 id="（3）十六级制转换为十进制示例"><a href="#（3）十六级制转换为十进制示例" class="headerlink" title="（3）十六级制转换为十进制示例"></a>（3）十六级制转换为十进制示例</h2><blockquote>
+<p>规则：从<strong>最低位（右边）</strong> 开始，将每个位上的数据取出来，<strong>乘以16的（位数-1）次方</strong>，然后<strong>求和</strong>。</p>
+</blockquote>
+<p>案例：将0x<strong>23A</strong>转为十进制的数</p>
+<blockquote>
+<p><strong>0x23A &#x3D; 10 * 16 ^ 0 + 3 * 16 ^ 1 + 2 * 16 ^ 2 &#x3D; 10 + 48 + 512 &#x3D; 570</strong></p>
+</blockquote>
+<h1 id="三、十进制换行为二进制、八进制、十六进制"><a href="#三、十进制换行为二进制、八进制、十六进制" class="headerlink" title="三、十进制换行为二进制、八进制、十六进制"></a>三、十进制换行为二进制、八进制、十六进制</h1><h2 id="（1）十进制转换为二进制"><a href="#（1）十进制转换为二进制" class="headerlink" title="（1）十进制转换为二进制"></a>（1）十进制转换为二进制</h2><blockquote>
+<p>规则：将该数<strong>不断除以2</strong>，直到<strong>商为0为止</strong>，然后将每步得到的<strong>余数倒过来</strong>，就是对应的二进制。</p>
+</blockquote>
+<p>案例：将34转换为二进制 &#x3D;&gt; 0B<strong>00100010 （不足一个字节8位，前面补两个0）</strong></p>
+<blockquote>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/507ba4db52eb424b965d73c21734eeb2~tplv-k3u1fbpfcp-zoom-1.image"><br>图解–</p>
+</blockquote>
+<h2 id="（2）十进制转换为八进制"><a href="#（2）十进制转换为八进制" class="headerlink" title="（2）十进制转换为八进制"></a>（2）十进制转换为八进制</h2><blockquote>
+<p>规则：将该数<strong>不断除以8</strong>，直到<strong>商为0为止</strong>，然后将每步得到的<strong>余数倒过来</strong>，就是对应的二进制。</p>
+</blockquote>
+<p>案例：将131转为八进制 &#x3D;&gt; 0<strong>203</strong></p>
+<blockquote>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/c324d4ea96d54d5f92d3ce55db967961~tplv-k3u1fbpfcp-zoom-1.image"><br>图解–</p>
+</blockquote>
+<h2 id="（3）十进制转换为十六进制"><a href="#（3）十进制转换为十六进制" class="headerlink" title="（3）十进制转换为十六进制"></a>（3）十进制转换为十六进制</h2><blockquote>
+<p>规则：将该数<strong>不断除以16</strong>，直到<strong>商为0为止</strong>，然后将每步得到的<strong>余数倒过来</strong>，就是对应的二进制。</p>
+</blockquote>
+<p>案例：将<strong>237</strong>转为十六进制 &#x3D;&gt; 0X<strong>ED （14对应十六进制E，13对应十六进制D）</strong></p>
+<blockquote>
+<p><img src="https://p3-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/23faa53230864917b496324dd7968342~tplv-k3u1fbpfcp-zoom-1.image"><br>图解 </p>
+</blockquote>
+<h1 id="四、二进制转换为八进制、十六进制"><a href="#四、二进制转换为八进制、十六进制" class="headerlink" title="四、二进制转换为八进制、十六进制"></a>四、二进制转换为八进制、十六进制</h1><h2 id="（1）二进制转换为八进制"><a href="#（1）二进制转换为八进制" class="headerlink" title="（1）二进制转换为八进制"></a>（1）二进制转换为八进制</h2><blockquote>
+<p>规则：从<strong>低位</strong>开始，将二进制数<strong>每三位一组</strong>，转为对应的八进制即可。</p>
+</blockquote>
+<p>案例：将0b<strong>11010101</strong>转为八进制</p>
+<p>0b<strong>11(3)010(2)101(5)</strong> 转为八进制 &#x3D;&gt; 0<strong>3****25</strong></p>
+<h2 id="（2）二进制转换为十六进制"><a href="#（2）二进制转换为十六进制" class="headerlink" title="（2）二进制转换为十六进制"></a>（2）二进制转换为十六进制</h2><blockquote>
+<p>规则：从<strong>低位</strong>开始，将二进制数<strong>每四位一组</strong>，转为对应的十六进制即可。</p>
+</blockquote>
+<p>案例：将0b<strong>11010101</strong>转为十六进制</p>
+<blockquote>
+<p>0b<strong>1101(13&#x3D;&gt;D)0101(5)</strong> &#x3D; 0x<strong>D****5</strong></p>
+</blockquote>
+<h1 id="五、八进制、十六进制转换为二进制"><a href="#五、八进制、十六进制转换为二进制" class="headerlink" title="五、八进制、十六进制转换为二进制"></a>五、八进制、十六进制转换为二进制</h1><h2 id="（1）八进制转换为二进制"><a href="#（1）八进制转换为二进制" class="headerlink" title="（1）八进制转换为二进制"></a>（1）八进制转换为二进制</h2><blockquote>
+<p>规则：将八进制数<strong>每1位</strong>，转为对应的<strong>一个3位的二进制数</strong>即可。</p>
+</blockquote>
+<p>案例：将0<strong>2****37</strong>转成二进制</p>
+<blockquote>
+<p>0<strong>2(010)3(011)7(111)  &#x3D; 0b010011111</strong></p>
+</blockquote>
+<h2 id="（2）十六进制转换为二进制"><a href="#（2）十六进制转换为二进制" class="headerlink" title="（2）十六进制转换为二进制"></a>（2）十六进制转换为二进制</h2><blockquote>
+<p>规则：将八进制数<strong>每1位</strong>，转为对应的<strong>一个4位的二进制数</strong>即可。</p>
+</blockquote>
+<p>案例：将0x<strong>23B</strong>转为二进制</p>
+<blockquote>
+<p>0x<strong>2(0010)3(0011)B(1011)</strong> &#x3D; 0b<strong>001000111011</strong></p>
+</blockquote>
+<h1 id="六、原码、反码、补码"><a href="#六、原码、反码、补码" class="headerlink" title="六、原码、反码、补码"></a>六、原码、反码、补码</h1><blockquote>
+<p>1、二进制的最高位是符号位：0表示正数，1表示负数（口诀：0 &#x3D;&gt; 0 **1 &#x3D;&gt; -**）</p>
+<p>2、正数的原码，反码，补码都一样（三码合一）</p>
+<p>3、负数的反码&#x3D;它的原码符号不变，其他位取反（0 &#x3D;&gt; 1 <strong>1 &#x3D;&gt; 0</strong>）</p>
+<p>4、负数的补码 &#x3D; 它的反码 + 1，负数的反码 &#x3D; 负数的补码 - 1</p>
+<p>5、0的反码，补码都是0</p>
+<p>6、java没有无符号数，换而言之，java中的数都是有符号的</p>
+<p>7、在计算机运算的时候，都是以<strong>补码的方式来运算</strong>的</p>
+<p>8、当我们看运算结果的时候，要看他的原码（！！！）</p>
+</blockquote>
+<h1 id="七、位运算详解"><a href="#七、位运算详解" class="headerlink" title="七、位运算详解"></a>七、位运算详解</h1><p>java中有7个位运算（&amp;、|、^、~、&gt;&gt;、&lt;&lt; 和 &gt;&gt;&gt;）</p>
+<blockquote>
+<p>分别是按位与&amp;、按位或|、按位异或^、按位取反~，它们的运算规则是：</p>
+<p>按位与&amp;：两位全为1，结果为1，否则为0</p>
+<p>按位或|：两位有一个为1，结果为1，否则为0</p>
+<p>按位异或^：两位一个为0，一个为1，结果为1，否则为0</p>
+<p>按位取反~：0 &#x3D;&gt; 1,1  &#x3D;&gt; 0</p>
+</blockquote>
+<p>案例：</p>
+<blockquote>
+<p><strong>2&amp;3</strong></p>
+<p>1、先得到2的补码 &#x3D;&gt; 2的原码 00000000 00000000 00000000 00000010</p>
+<p>2的补码 00000000 00000000 00000000 00000010（正数原码补码一样）</p>
+<p>2、再得到3的补码 &#x3D;&gt; 3的补码 00000000 00000000 00000000 00000011</p>
+<p>3的补码 00000000 00000000 00000000 00000011（正数原码补码一样）</p>
+<p>3、按位&amp;</p>
+<p>00000000 00000000 00000000 00000010</p>
+<p>00000000 00000000 00000000 00000011</p>
+<p>00000000 00000000 00000000 00000010 &amp; 运算后的补码</p>
+<p>运算后的原码也是 00000000 00000000 00000000 00000010</p>
+<p>结果就是 2</p>
+</blockquote>
+<blockquote>
+<p><strong>~ -2</strong></p>
+<p>1、先得到-2的原码 1000000 00000000 00000000 00000010</p>
+<p>2、-2的反码            11111111 11111111 11111111 11111101</p>
+<p>3、-2的补码            11111111 11111111 11111111 11111110</p>
+<p>4、~ -2 操作            0000000 00000000 00000000 0000001 运算后的补码</p>
+<p>5、运算后的原码 就是 0000000 00000000 00000000 0000001 &#x3D;&gt; 1</p>
+</blockquote>
+<blockquote>
+<p><strong>~ 2</strong></p>
+<p>1、得到2的补码 0000000 00000000 00000000 00000010 （正数原码和补码一样得出）</p>
+<p>2、~ 2操作 11111111 11111111 11111111 11111101 运算后的补码</p>
+<p>3、运算后的反码 11111111 11111111 11111111 11111100 （负数补码为-1）</p>
+<p>4、运算后的原码 10000000 00000000 00000000 00000011 （负数反码符号不变，其他取反得出） &#x3D;&gt; -3</p>
+</blockquote>
+<p>还有3个位运算符&gt;&gt;、&lt;&lt; 和 &gt;&gt;&gt;，运算规则：</p>
+<blockquote>
+<p>1、算术右移&gt;&gt;：低位溢出，符号位不变，并用符号位补溢出的高位</p>
+<p>2、算术左移&lt;&lt;：符号位不变，低位补0</p>
+<p>3、&gt;&gt;&gt; 逻辑右移也叫无符号右移，运算规则：低位溢出，高位补0</p>
+<p>4、特别说明：没有 &lt;&lt;&lt; 无符号</p>
+</blockquote>
+<p>案例：</p>
+<blockquote>
+<p>int a &#x3D; 1 &gt;&gt; 2;&#x2F;&#x2F;1&#x3D;&gt; 00000001 &#x3D;&gt; 00000000 <strong>本质1 &#x2F; 2 &#x2F; 2 &#x3D; 0</strong></p>
+<p>int c &#x3D; 1 &lt;&lt; 2; &#x2F;&#x2F;1&#x3D;&gt; 00000001 &#x3D;&gt; 00000100<strong>本质1 * 2 * 2 &#x3D; 4</strong></p>
+</blockquote>
+<p>​</p>
+]]></content>
+      <categories>
+        <category>后端</category>
+        <category>进制转换</category>
+      </categories>
+      <tags>
+        <tag>进制转换</tag>
+        <tag>运算</tag>
+        <tag>原码、反码、补码</tag>
+      </tags>
+  </entry>
+</search>
